@@ -110,3 +110,7 @@ void sendToDiscord(float ppm) {
   }
 }
 
+---------------------
+
+ESP32 보드 URL: https://dl.espressif.com/dl/package_esp32_index.json
+ESP8266 보드 URL: http://arduino.esp8266.com/stable/package_esp8266com_index.json
