@@ -110,7 +110,110 @@ void sendToDiscord(float ppm) {
   }
 }
 
----------------------
 
-ESP32 보드 URL: https://dl.espressif.com/dl/package_esp32_index.json
-ESP8266 보드 URL: http://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+------------------------------------------------------------
+
+const int MQ7_AOUT_PIN = A0; // MQ-7의 아날로그 출력 핀
+
+const float VCC = 5.0;       // Arduino 공급 전압
+const float RL = 10.0;       // 로드 저항 (단위: kΩ)
+const float R0 = 10.0;       // 깨끗한 공기에서 센서 저항 (단위: kΩ)
+const float a = 100.0;       // 데이터시트에서 제공되는 상수 a
+const float b = -1.5;        // 데이터시트에서 제공되는 상수 b
+
+void setup() {
+  Serial.begin(9600); // 시리얼 통신 시작
+}
+
+void loop() {
+  int sensorValue = analogRead(MQ7_AOUT_PIN); // 센서 값 읽기
+  float voltage = (sensorValue / 1023.0) * VCC; // 전압 계산
+  float RS = RL * (VCC - voltage) / voltage;   // 센서 저항 계산
+  float ratio = RS / R0;                       // 센서 비율 계산
+  float ppm = a * pow(ratio, b);               // PPM 계산
+
+  // 데이터 시리얼 포트로 전송
+  Serial.println(ppm);
+  delay(1000); // 1초 간격
+}
+
+
+python part
+
+import serial
+import time
+import requests
+from datetime import datetime
+
+# Arduino와 연결할 시리얼 포트 설정
+PORT = "COM3"  # Arduino가 연결된 포트 (Windows에서는 COMx, Mac/Linux에서는 /dev/ttyUSBx)
+BAUDRATE = 9600  # Arduino와 동일한 보드레이트 설정
+WEBHOOK_URL = "YOUR_DISCORD_WEBHOOK_URL"  # 디스코드 웹훅 URL 입력
+
+# CO 경고 임계값
+CO_THRESHOLD = 50.0  # PPM 단위
+
+def send_discord_alert(ppm):
+    """디스코드로 경고 메시지 전송"""
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    color = 0xFF0000 if ppm >= CO_THRESHOLD else 0xFFFF00
+
+    data = {
+        "embeds": [{
+            "title": "⚠️ CO 농도 경고 ⚠️",
+            "description": f"현재 CO 농도는 {ppm:.2f} ppm 입니다.",
+            "color": color,
+            "fields": [
+                {"name": "상태", "value": "위험 수준 도달" if ppm >= CO_THRESHOLD else "정상", "inline": True},
+                {"name": "측정 시간", "value": current_time, "inline": False}
+            ],
+            "footer": {"text": "CO 모니터링 시스템"}
+        }]
+    }
+
+    try:
+        response = requests.post(WEBHOOK_URL, json=data)
+        if response.status_code == 204:
+            print(f"[{current_time}] 디스코드 알림 전송 성공: {ppm:.2f} ppm")
+        else:
+            print(f"디스코드 알림 전송 실패: {response.status_code}")
+    except Exception as e:
+        print(f"디스코드 알림 오류: {str(e)}")
+
+def main():
+    try:
+        # Arduino 시리얼 포트 열기
+        ser = serial.Serial(PORT, BAUDRATE, timeout=1)
+        print(f"Arduino 연결됨: {PORT}")
+        time.sleep(2)  # Arduino 초기화 대기
+
+        while True:
+            # 시리얼 데이터 읽기
+            if ser.in_waiting > 0:
+                line = ser.readline().decode('utf-8').strip()
+                try:
+                    ppm = float(line)
+                    print(f"CO 농도: {ppm:.2f} ppm")
+
+                    # CO 농도가 임계값 초과 시 디스코드 알림 전송
+                    if ppm >= CO_THRESHOLD:
+                        send_discord_alert(ppm)
+
+                except ValueError:
+                    print(f"잘못된 데이터 수신: {line}")
+            time.sleep(1)
+
+    except serial.SerialException as e:
+        print(f"시리얼 연결 오류: {str(e)}")
+    except KeyboardInterrupt:
+        print("프로그램 종료")
+    finally:
+        if 'ser' in locals() and ser.is_open:
+            ser.close()
+            print("시리얼 포트 닫힘")
+
+if __name__ == "__main__":
+    main()
+
+
