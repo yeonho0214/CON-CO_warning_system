@@ -52,7 +52,7 @@ void loop() {
 ***
 ## 2. MQ-7 가스센서 (12/4.수)
 > <img src="https://github.com/user-attachments/assets/d91a8dbe-538e-4ac1-be59-bfde55e4357c" alt="Image 1" style="width: 30%;"/>
-> <img src="https://github.com/user-attachments/assets/c4af8b61-ead2-4e2d-98b6-d1453c07f33d" alt="Image 2" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/c4af8b61-ead2-4e2d-98b6-d1453c07f33d" alt="Image 2" style="width: 50%;"/>
 
 
 > * 디스코드를 활용해 임계치 도달 시 알림이 뜨게 하기 위해서 추가로 코딩이 필요하고, 부저도 활용해볼 계획.
@@ -60,7 +60,6 @@ void loop() {
 
 ## 3. 디스코드로 알림 받기, 부저 알림 -> 실험 진행 (12/7.토)
 > <img src="https://github.com/user-attachments/assets/cb513ab1-e134-4dc4-8d2e-038b23f017f9" alt="Image 1" style="width: 30%;"/>
-> <img src="https://github.com/user-attachments/assets/322ac8e8-4d52-4c1b-bdcd-8471d5e68eba" alt="Image 2" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/b747a1c3-58d0-4578-9070-5692ccf27e07" alt="Image 3" style="width: 30%;"/>
 
 > <img src="https://github.com/user-attachments/assets/b470708c-b824-4159-8042-7b94a2f51f14" alt="Image 4" style="width: 30%;"/>
