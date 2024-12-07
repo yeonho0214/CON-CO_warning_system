@@ -1,6 +1,77 @@
 CON-CO_warning_system
 =====================
 
+# 아두이노를 활용한 센서 및 부저 조립과 구현
+
+## 1. MQ-9 가스센서 (12/2.월)
+> <img src="https://github.com/user-attachments/assets/f15ed0e5-3371-40a2-96b0-ed486a6294dc" alt="Image 1" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/12600b08-ccf8-4090-a4b6-e7ea8cf2b8ab" alt="Image 2" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/d4c0ebcd-934b-4385-bb7f-859cee0ae6cc" alt="Image 2" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/087457fa-1963-446a-8c8b-a9a2f2d3a42c" alt="Image" style="width: 30%;"/>
+
+
+
+> * mq 9을 블로그에 나오는데로 다 해봤는데 농도 변화가 크게 차이가 나지 않는다.
+> * mq9 이랑 mq7의 차이는 7이 일산화탄소를 집중적으로 더 잘잡는다고 해서 7으로 교체했다.
+
+   
+<pre>
+<code>
+const int MQ9_AOUT_PIN = A0; // MQ-9의 AOUT 핀이 연결된 아날로그 핀
+float sensorValue;           // 센서 출력 값
+
+void setup() {
+  Serial.begin(9600); // 시리얼 통신 시작
+  pinMode(MQ9_AOUT_PIN, INPUT); // MQ-9 핀을 입력으로 설정
+}
+
+void loop() {
+  // 아날로그 값 읽기
+  sensorValue = analogRead(MQ9_AOUT_PIN);
+
+  // 센서 값 변환 (0~1023 → 가스 농도)
+  float voltage = sensorValue * (5.0 / 1023.0); // 5V 기준 전압 변환
+  float co_concentration = voltage * 100;      // 임의 농도 계산 (보정 필요)
+
+  // 시리얼 모니터에 출력
+  Serial.print("Sensor Value: ");
+  Serial.print(sensorValue);
+  Serial.print(" | Voltage: ");
+  Serial.print(voltage);
+  Serial.print(" V | CO Concentration: ");
+  Serial.print(co_concentration);
+  Serial.println(" ppm"); // ppm 단위로 출력 (보정된 농도)
+
+  delay(1000); // 1초 간격으로 업데이트
+}
+</code>
+</pre>
+* MQ-9 사용 코드
+
+***
+## 2. MQ-7 가스센서 (12/4.수)
+> <img src="https://github.com/user-attachments/assets/d91a8dbe-538e-4ac1-be59-bfde55e4357c" alt="Image 1" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/c4af8b61-ead2-4e2d-98b6-d1453c07f33d" alt="Image 2" style="width: 30%;"/>
+
+
+> * 디스코드를 활용해 임계치 도달 시 알림이 뜨게 하기 위해서 추가로 코딩이 필요하고, 부저도 활용해볼 계획.
+> * 센서의 아날로그 출력 값을 PPM으로 변환하기 위해, a,b 값을 찾아야 한다.
+
+## 3. 디스코드로 알림 받기, 부저 알림 -> 실험 진행 (12/7.토)
+> <img src="https://github.com/user-attachments/assets/cb513ab1-e134-4dc4-8d2e-038b23f017f9" alt="Image 1" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/322ac8e8-4d52-4c1b-bdcd-8471d5e68eba" alt="Image 2" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/5b722e66-0253-4c5d-990c-86257e50562b" alt="Image 3" style="width: 30%;"/>
+
+> <img src="https://github.com/user-attachments/assets/b470708c-b824-4159-8042-7b94a2f51f14" alt="Image 4" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/fbc4c6bf-ba47-4d46-963b-7fb9b8d64b3e" alt="Image 5" style="width: 30%;"/>
+
+
+> * 최종 실험에서 1.5g 숯 3개를 사용하였다.
+> * (),(),()에 부저가 울리도록 설정하였고, 동시에 디스코드로도 경고알림을 받을 수 있었다.
+> * 농도가 높이 올라가지 않아 임계치를 조정, 여건상 높은 농도를 측정하기에 어려움이 있다.
+> * 시행 착오: 양초 1개/5개, 숯(작은 크기) 1개 -> 낮은 농도에 머무름
+
+
 <pre>
 <code>
 const int MQ7_AOUT_PIN = A0; // MQ-7의 AOUT 핀이 연결된 아날로그 핀
