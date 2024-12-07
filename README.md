@@ -60,12 +60,12 @@ void loop() {
 ***
 ### 3. 디스코드로 알림 받기, 부저 알림 -> 실험 진행 (12/7.토)
 > <img src="https://github.com/user-attachments/assets/cb513ab1-e134-4dc4-8d2e-038b23f017f9" alt="Image 1" style="width: 30%;"/>
-> <img src="https://github.com/user-attachments/assets/b747a1c3-58d0-4578-9070-5692ccf27e07" alt="Image 3" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/b747a1c3-58d0-4578-9070-5692ccf27e07" alt="Image 3" style="width: 50%;"/>
 > <img src="https://github.com/user-attachments/assets/b470708c-b824-4159-8042-7b94a2f51f14" alt="Image 4" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/fbc4c6bf-ba47-4d46-963b-7fb9b8d64b3e" alt="Image 5" style="width: 30%;"/>
 
 > * 최종 실험에서 1.5g 숯 3개를 사용하였다.
-> * (),(),()에 부저가 울리도록 설정하였고, 동시에 디스코드로도 경고알림을 받을 수 있었다.
+> * (), (), ()에 부저가 울리도록 설정하였고, 동시에 디스코드로도 경고 알림을 받을 수 있었다.
 > * 농도가 높이 올라가지 않아 임계치를 조정, 여건상 높은 농도를 측정하기에 어려움이 있다.
 > * 시행 착오: 양초 1개/5개, 숯(작은 크기) 1개 -> 낮은 농도에 머무름
 
