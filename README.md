@@ -60,7 +60,7 @@ void loop() {
 ## 3. 디스코드로 알림 받기, 부저 알림 -> 실험 진행 (12/7.토)
 > <img src="https://github.com/user-attachments/assets/cb513ab1-e134-4dc4-8d2e-038b23f017f9" alt="Image 1" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/322ac8e8-4d52-4c1b-bdcd-8471d5e68eba" alt="Image 2" style="width: 30%;"/>
-> <img src="https://github.com/user-attachments/assets/5b722e66-0253-4c5d-990c-86257e50562b" alt="Image 3" style="width: 30%;"/>
+> <img src="https://github.com/user-attachments/assets/b747a1c3-58d0-4578-9070-5692ccf27e07" alt="Image 3" style="width: 30%;"/>
 
 > <img src="https://github.com/user-attachments/assets/b470708c-b824-4159-8042-7b94a2f51f14" alt="Image 4" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/fbc4c6bf-ba47-4d46-963b-7fb9b8d64b3e" alt="Image 5" style="width: 30%;"/>
