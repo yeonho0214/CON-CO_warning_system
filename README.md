@@ -3,17 +3,20 @@ CON-CO_warning_system
 
 ## 아두이노를 활용한 센서 및 부저 조립과 구현
 
-### 1. MQ-9 가스센서 (12/2.월)
+### 1. MQ-9 가스센서 
+#### 개요
+* MQ-9 가스 센서는 다양한 가스의 농도를 감지할 수 있는 센서로, 특히 일산화탄소(CO), 메탄(CH₄), 그리고 액화석유가스(LPG)와 같은 가연성 가스에 민감합니다. 이 센서는 가스 누출 감지, 대기 질 모니터링, 산업 안전 시스템 등에 사용됩니다.
+#### 12/2(월)_JETBOT과 연결 및 측정 시도
 > <img src="https://github.com/user-attachments/assets/f15ed0e5-3371-40a2-96b0-ed486a6294dc" alt="Image 1" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/12600b08-ccf8-4090-a4b6-e7ea8cf2b8ab" alt="Image 2" style="width: 30%;"/>
 
 > <img src="https://github.com/user-attachments/assets/d4c0ebcd-934b-4385-bb7f-859cee0ae6cc" alt="Image 2" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/087457fa-1963-446a-8c8b-a9a2f2d3a42c" alt="Image" style="width: 30%;"/>
-
-
-
-> * mq 9을 블로그에 나오는데로 다 해봤는데 농도 변화가 크게 차이가 나지 않는다.
+> * mq 9을 블로그에 나오는데로 다 해봤는데 농도 변화가 크게 차이가 나지 않는다. (블로그 링크 : [https://cafe.naver.com/mechawiki/3521])
 > * mq9 이랑 mq7의 차이는 7이 일산화탄소를 집중적으로 더 잘잡는다고 해서 7으로 교체했다.
+>    * MQ-7은, CO 감지에만 초점이 맞춰져 있어서 감지 범위가 20~2000 ppm으로 넓으며, 농도가 더 높은 환경에서도 안정적으로 작동한다.
+>    * MQ-9은 다양한 가스와의 반응을 고려해야 하므로, 특정 가스(CO)에 대한 민감도가 상대적으로 낮아질 수 있다.
+
 
 * MQ-9 사용 코드   
 <pre>
@@ -51,23 +54,37 @@ void loop() {
 
 ***
 ### 2. MQ-7 가스센서 (12/4.수)
+#### 개요
+* MQ-7은, MQ-7은 일산화탄소(CO) 감지에 특화된 센서로, 높은 CO 감도와 20~2000ppm의 농도를 측정할 수 있습니다. 히터 전압을 주기적으로 변경하여 작동하며, 주로 보일러실이나 자동차 배기가스 감지에 사용됩니다.
+#### 12/4(수)_JETBOT과 연결 및 측정 시도
 > <img src="https://github.com/user-attachments/assets/d91a8dbe-538e-4ac1-be59-bfde55e4357c" alt="Image 1" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/c4af8b61-ead2-4e2d-98b6-d1453c07f33d" alt="Image 2" style="width: 50%;"/>
-
 > * 디스코드를 활용해 임계치 도달 시 알림이 뜨게 하기 위해서 추가로 코딩이 필요하고, 부저도 활용해볼 계획.
 > * 센서의 아날로그 출력 값을 ppm 단위로 변환하기 위해, a,b 값을 찾아야 한다.
+>    * 데이터 시트에 있는 CO Curve 식에 가장 일반적으로 사용되는 값인, a=100, b= -1.5을 선택하고 대입하여 사용했다.
 
 ***
-### 3. 디스코드로 알림 받기, 부저 알림 -> 실험 진행 (12/7.토)
+### 3. 디스코드로 알림 받기, 부저 알림
+#### 개요
+* MQ-7 센서로 측정한 CO 농도를 일정 기준에 맞춰 상태(정상, 위험 등)를  특정한 후 디스코드로 주의하라는 알림을 사용자에게 보낸다.
+* 부저를 설치해 정상 상태가 아닌 CO 농도에서 경고음이 발생하도록 설계한다.
+
+#### 12/7(토)_실험 진행
 > <img src="https://github.com/user-attachments/assets/cb513ab1-e134-4dc4-8d2e-038b23f017f9" alt="Image 1" style="width: 40%;"/>
 > <img src="https://github.com/user-attachments/assets/b747a1c3-58d0-4578-9070-5692ccf27e07" alt="Image 3" style="width: 50%;"/>
 > <img src="https://github.com/user-attachments/assets/b470708c-b824-4159-8042-7b94a2f51f14" alt="Image 4" style="width: 40%;"/>
 > <img src="https://github.com/user-attachments/assets/fbc4c6bf-ba47-4d46-963b-7fb9b8d64b3e" alt="Image 5" style="width: 40%;"/>
 
-> * 최종 실험에서 1.5g 숯 3개를 사용하였다.
-> * (200), (800), (3200)에서 부저가 울리도록 설정하였고, 동시에 디스코드로도 경고 알림을 받을 수 있었다.
-> * 농도가 높이 올라가지 않아 임계치를 조정, 여건상 높은 농도를 측정하기에 어려움이 있다.
-> * 시행 착오: 양초 1개/5개, 숯(작은 크기) 1개 -> 낮은 농도에 머무름
+> * 최종적인 실험에서 1.5g 숯 3개를 사용하였다.
+> * 처음에는 200, 800, 3200 ppm (WHO 권고 기준)에서 부저 알림 및 디스코드 경고 알림을 설정하였다.
+>   * 정상: ppm < 200 (부저 꺼짐)
+>   * 주의: 200 <= ppm < 800 (낮은 톤(1000Hz)으로 짧게 울림)
+>   * 위험: 800 <= ppm < 3200 (중간 톤(2000Hz)으로 울림)
+>   * 매우 위험: 3200 <= ppm (높은 톤(3000Hz)으로 계속 울림)
+> * 실험 진행 도중에 농도가 충분히 높이 올라가지 않았고, 여건상 높은 CO 농도를 측정하기 어려움이 있었다.
+>    * 양초 1개/5개, 숯(작은 크기) 1개로 시도하였으나 여전히 낮은 농도에 머무름.
+>    * 기준치를 변경하기로 하고, 200ppm을 0.6ppm으로, 800ppm을 5ppm로, 3200ppm 20ppm으로 바꿨다. 
+
 
 
 <pre>
