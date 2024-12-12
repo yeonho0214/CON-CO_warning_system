@@ -15,7 +15,7 @@ CON-CO_warning_system
 > * mq 9을 블로그에 나오는데로 다 해봤는데 농도 변화가 크게 차이가 나지 않는다.
 > * mq9 이랑 mq7의 차이는 7이 일산화탄소를 집중적으로 더 잘잡는다고 해서 7으로 교체했다.
 
-   
+* MQ-9 사용 코드   
 <pre>
 <code>
 const int MQ9_AOUT_PIN = A0; // MQ-9의 AOUT 핀이 연결된 아날로그 핀
@@ -47,7 +47,7 @@ void loop() {
 }
 </code>
 </pre>
-* MQ-9 사용 코드
+
 
 ***
 ### 2. MQ-7 가스센서 (12/4.수)
@@ -55,7 +55,7 @@ void loop() {
 > <img src="https://github.com/user-attachments/assets/c4af8b61-ead2-4e2d-98b6-d1453c07f33d" alt="Image 2" style="width: 50%;"/>
 
 > * 디스코드를 활용해 임계치 도달 시 알림이 뜨게 하기 위해서 추가로 코딩이 필요하고, 부저도 활용해볼 계획.
-> * 센서의 아날로그 출력 값을 PPM으로 변환하기 위해, a,b 값을 찾아야 한다.
+> * 센서의 아날로그 출력 값을 ppm 단위로 변환하기 위해, a,b 값을 찾아야 한다.
 
 ***
 ### 3. 디스코드로 알림 받기, 부저 알림 -> 실험 진행 (12/7.토)
@@ -65,7 +65,7 @@ void loop() {
 > <img src="https://github.com/user-attachments/assets/fbc4c6bf-ba47-4d46-963b-7fb9b8d64b3e" alt="Image 5" style="width: 40%;"/>
 
 > * 최종 실험에서 1.5g 숯 3개를 사용하였다.
-> * (), (), ()에 부저가 울리도록 설정하였고, 동시에 디스코드로도 경고 알림을 받을 수 있었다.
+> * (200), (800), (3200)에서 부저가 울리도록 설정하였고, 동시에 디스코드로도 경고 알림을 받을 수 있었다.
 > * 농도가 높이 올라가지 않아 임계치를 조정, 여건상 높은 농도를 측정하기에 어려움이 있다.
 > * 시행 착오: 양초 1개/5개, 숯(작은 크기) 1개 -> 낮은 농도에 머무름
 
@@ -299,9 +299,7 @@ if __name__ == "__main__":
 
 ***
 
-## <최종코드>
-
-### <아두이노 IDE>
+## 아두이노 IDE
 
 <pre>
 <code>
@@ -365,17 +363,13 @@ void loop() {
 
 </code>
 </pre>
-
-
-
-
-
+> * MQ-7 센서가 출력하는 아날로그 값을 ppm 단위로 변환하는 내용
+> * 우리가 설정한 기준치(정상, 위험 등)에 넘어섰을 때 부저가 울리도록 하는 내용
 
 
 
 ***
-
-### <Python>
+## 디스코드 알림 전송
 
 <pre>
 <code>
@@ -498,12 +492,625 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+PORT = "/dev/ttyUSB0"  # Jetson Nano에서 Arduino 포트 확인 (예: /dev/ttyACM0)
+WEBHOOK_URL = "https://discord.com/api/webhooks/1313826821787226132/txS4YAXl6tm_5UWQVzSCX0rQRLGOOELs2a_9PIk3vMNALzxxX2r88bDJcZ6f0K5v_3oe"  # 실제 Discord Webhook URL
+CSV_FILE_PATH = "/home/dli/CO_ver2/co_readings_Beta.csv"  # CSV 파일 저장 경로
+
       
 </code>
 </pre>
 
+* 웹후크 = [https://discord.com/api/webhooks/1313826821787226132/txS4YAXl6tm_5UWQVzSCX0rQRLGOOELs2a_9PIk3vMNALzxxX2r88bDJcZ6f0K5v_3oe]
+
+
+> * 디스코드 알림 전송하는 내용
+> * 알림 형식: '⚠️ CO {status} 상태 ⚠️', "현재 CO 농도는 {ppm:.2f} ppm 입니다." (현 농도와 상태를 알 수 있음)
+
+***
+## CO_monitor
+### 오류가 있던 graido 포함, 답변이 된 version 
+
+<pre>
+<code>
+import serial
+import time
+import requests
+from datetime import datetime
+import csv
+import os
+import numpy as np
+from openai import OpenAI
+import gradio as gr
+import json
+
+# ===== 사용자 환경에 맞게 수정해야 하는 부분 =====
+PORT = "/dev/ttyUSB0"  # Jetson Nano에서 Arduino 포트 확인 (예: /dev/ttyACM0)
+WEBHOOK_URL = "https://discord.com/api/webhooks/1313826821787226132/txS4YAXl6tm_5UWQVzSCX0rQRLGOOELs2a_9PIk3vMNALzxxX2r88bDJcZ6f0K5v_3oe"  # 실제 Discord Webhook URL
+CSV_FILE_PATH = "/home/dli/CO_ver2/co_readings_gradio.csv"  # CSV 파일 저장 경로
+
+# ==============================================
+</code>
+</pre>
+
+<pre>
+<code>
+# 상태 기준
+# 정상: ppm < 200
+# 주의: 200 ≤ ppm < 800
+# 위험: 800 ≤ ppm < 3200
+# 매우 위험: ppm ≥ 3200
+
+def init_csv_file(filename):
+    dir_path = os.path.dirname(filename)
+    if dir_path and not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
+    # 파일이 없을 경우 헤더 기록
+    if not os.path.exists(filename):
+        with open(filename, mode='w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(["timestamp", "ppm"])
+        print(f"CSV 파일 생성 및 헤더 작성 완료: {filename}")
+
+def append_csv_file(filename, timestamp_str, ppm_value):
+    with open(filename, mode='a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow([timestamp_str, ppm_value])
+
+def get_co_status(ppm):
+    if ppm < 0.6:
+        return "정상", 0x00FF00  # Green
+    elif ppm < 5:
+        return "주의", 0xFFFF00  # Yellow
+    elif ppm < 20:
+        return "위험", 0xFFA500  # Orange
+    else:
+        return "매우 위험", 0xFF0000  # Red
+
+def send_discord_alert(ppm):
+    """CO 농도별 단계 알림 전송"""
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    status, color = get_co_status(ppm)
+    description = f"현재 CO 농도는 {ppm:.2f} ppm 입니다."
+    title = f"⚠️ CO {status} 상태 ⚠️"
+    
+    data = {
+        "content": "@here",
+        "embeds": [{
+            "title": title,
+            "description": description,
+            "color": color,
+            "fields": [
+                {"name": "상태", "value": status, "inline": True},
+                {"name": "측정 시간", "value": current_time, "inline": False}
+            ],
+            "footer": {"text": "CO 모니터링 시스템"}
+        }]
+    }
+
+    try:
+        response = requests.post(WEBHOOK_URL, json=data)
+        if response.status_code == 204:
+            print(f"[{current_time}] 디스코드 알림 전송 성공: {ppm:.2f} ppm ({status})")
+        else:
+            print(f"디스코드 알림 전송 실패: {response.status_code}")
+    except Exception as e:
+        print(f"디스코드 알림 오류: {str(e)}")
+</code>
+</pre>
+
+<pre>
+<code>       
+# 최근 1분간 데이터 저장용 (1초 간격 -> 60개 데이터)
+ppm_buffer = []
+
+def add_ppm_data(ppm):
+    ppm_buffer.append((datetime.now(), ppm))
+    # 1분보다 오래된 데이터 제거
+    cutoff = datetime.now() - timedelta(seconds=60)
+    # timedelta import를 위해 위 코드 상단에 from datetime import datetime, timedelta 추가해야 함
+    while ppm_buffer and ppm_buffer[0][0] < cutoff:
+        ppm_buffer.pop(0)
+
+def predict_time_to_reach_threshold(threshold):
+    # 최근 1분간 데이터 사용
+    # ppm_buffer: [(time, ppm), ...]
+    if len(ppm_buffer) < 2:
+        return "데이터가 충분하지 않아 예측 불가합니다."
+
+    # 시간축을 초 단위로 변환
+    base_time = ppm_buffer[0][0]
+    times = np.array([(t[0]-base_time).total_seconds() for t in ppm_buffer])
+    ppms = np.array([t[1] for t in ppm_buffer])
+
+    # 선형 회귀
+    # y = m*x + c
+    # np.polyfit(x, y, 1) -> (m, c)
+    m, c = np.polyfit(times, ppms, 1)
+
+    # 현재 마지막 값 기준으로 앞으로도 m(기울기)로 증가한다고 가정
+    # threshold = m*x + c -> x = (threshold - c)/m
+    if m <= 0:
+        return "CO 농도가 증가하는 추세가 아닙니다. 환기가 급하지 않을 수 있습니다."
+
+    x_threshold = (threshold - c)/m
+    current_time_sec = (ppm_buffer[-1][0]-base_time).total_seconds()
+
+    if x_threshold <= current_time_sec:
+        return "이미 해당 임계값에 도달한 상태로 보입니다."
+
+    delta = x_threshold - current_time_sec
+    return f"{int(delta)}초 후에 CO 농도가 {threshold}ppm에 도달할 것으로 예상됩니다."
+</code>
+</pre>
+
+<pre>
+<code>
+# OpenAI Function 정의
+functions = [
+    {
+        "name": "predict_ventilation_time",
+        "description": "지정한 임계값(ppm)에 도달하는데 걸리는 예상 시간을 반환",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "threshold": {
+                    "type": "number",
+                    "description": "CO 임계값(ppm)"
+                }
+            },
+            "required": ["threshold"]
+        }
+    }
+]
+
+def openai_chat(query):
+    messages = [
+        {"role": "system", "content": "당신은 CO 농도 예측 전문가입니다. 사용자 질문에 대해 필요하면 함수를 호출하여 답해주세요."},
+        {"role": "user", "content": query}
+    ]
+    os.environ['OPENAI_API_KEY'] = ''
+    OpenAI.api_key = os.getenv("OPENAI_API_KEY")
+
+    client = OpenAI()	
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=messages,
+        functions=functions,
+        function_call="auto"
+    )
+
+    proc_messages = []
+    response_message = response.choices[0].message
+    tool_calls = response_message.tool_calls
+
+    if tool_calls:
+        available_functions = {
+            "predict_time_to_reach_threshold": predict_time_to_reach_threshold
+        }
+
+    # assistant의 reply를 대화 히스토리에 추가
+        messages.append(response_message)
+
+        for tool_call in tool_calls:
+            function_name = tool_call.function.name
+            function_to_call = available_functions.get(function_name)
+
+            if not function_to_call:
+            # 해당 함수가 없는 경우 처리
+                proc_messages.append({
+                    "role": "assistant",
+                    "content": f"요청한 함수({function_name})를 찾을 수 없습니다."
+                })
+                continue
+
+            function_args = json.loads(tool_call.function.arguments)
+
+        # 함수 호출
+        # 예: predict_time_to_reach_threshold(threshold=...)
+            function_response = function_to_call(**function_args)
+
+        # 함수 응답을 메시지에 추가
+            proc_messages.append(
+                {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": function_name,
+                    "content": function_response,
+                }
+            )
+
+    # 함수 응답 메시지를 전체 대화에 추가
+        messages += proc_messages
+
+    # 함수 호출 후 다시 모델에 요청해 최종 답변 받기
+        second_response = client.chat.completions.create(
+            model='gpt-4o-mini',
+            messages=messages,
+        )
+
+        assistant_message = second_response.choices[0].message.content
+        return assistant_message
+
+    else:
+    # 함수 호출 없이 직접 답변한 경우
+        return response_message.content
+
+
+def gradio_interface(query):
+    answer = openai_chat(query)
+    return answer
 
 
 
-* 웹후크 = https://discord.com/api/webhooks/1313826821787226132/txS4YAXl6tm_5UWQVzSCX0rQRLGOOELs2a_9PIk3vMNALzxxX2r88bDJcZ6f0K5v_3oe
+# Gradio 인터페이스
+iface = gr.Interface(fn=gradio_interface,
+                     inputs="text",
+                     outputs="text",
+                     title="CO 모니터링 & 예측 챗봇",
+                     description="CO 농도 상태 및 환기가 필요한 시간 예측")
 
+# 메인 로직 (CO 측정)
+if __name__ == "__main__":
+    from datetime import timedelta
+    init_csv_file(CSV_FILE_PATH)
+
+    try:
+        ser = serial.Serial(PORT, 9600, timeout=1)
+        print(f"Arduino 연결됨: {PORT}")
+        time.sleep(1)  # 시리얼 초기화 대기 시간
+
+        # Gradio 인터페이스 별도 스레드에서 실행
+        import threading
+        server_thread = threading.Thread(target=iface.launch, kwargs={"server_name":"0.0.0.0","server_port":7860}, daemon=True)
+        server_thread.start()
+
+        while True:
+            if ser.in_waiting > 0:
+                line = ser.readline().decode('utf-8').strip()
+                try:
+                    ppm = float(line)
+                    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    append_csv_file(CSV_FILE_PATH, current_time, ppm)
+                    print(f"CO 농도: {ppm:.2f} ppm")
+
+                    add_ppm_data(ppm)
+
+                    status, _ = get_co_status(ppm)
+                    if status in ["주의", "위험", "매우 위험"]:
+                        send_discord_alert(ppm)
+
+                except ValueError:
+                    print(f"잘못된 데이터 수신: {line}")
+
+            # 측정 주기 1초
+            time.sleep(1)
+
+    except serial.SerialException as e:
+        print(f"시리얼 연결 오류: {str(e)}")
+    except KeyboardInterrupt:
+        print("프로그램 종료 요청 받음")
+    finally:
+        if 'ser' in locals() and ser.is_open:
+            ser.close()
+</code>
+</pre>
+
+***
+### 최종 코드
+<pre>
+<code>
+import serial
+import time
+import requests
+from datetime import datetime
+import csv
+import os
+import numpy as np
+from openai import OpenAI
+import gradio as gr
+import json
+
+# ===== 사용자 환경에 맞게 수정해야 하는 부분 =====
+PORT = "/dev/ttyUSB0"  # Jetson Nano에서 Arduino 포트 확인 (예: /dev/ttyACM0)
+WEBHOOK_URL = "https://discord.com/api/webhooks/1313826821787226132/txS4YAXl6tm_5UWQVzSCX0rQRLGOOELs2a_9PIk3vMNALzxxX2r88bDJcZ6f0K5v_3oe"  # 실제 Discord Webhook URL
+CSV_FILE_PATH = "/home/dli/CO_ver2/co_readings_gradio.csv"  # CSV 파일 저장 경로
+# ==============================================
+</code>
+</pre>
+
+<pre>
+<code>
+# 상태 기준
+# 정상: ppm < 200
+# 주의: 200 ≤ ppm < 800
+# 위험: 800 ≤ ppm < 3200
+# 매우 위험: ppm ≥ 3200
+
+def init_csv_file(filename):
+    dir_path = os.path.dirname(filename)
+    if dir_path and not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
+    # 파일이 없을 경우 헤더 기록
+    if not os.path.exists(filename):
+        with open(filename, mode='w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(["timestamp", "ppm"])
+        print(f"CSV 파일 생성 및 헤더 작성 완료: {filename}")
+
+def append_csv_file(filename, timestamp_str, ppm_value):
+    with open(filename, mode='a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow([timestamp_str, ppm_value])
+
+def get_co_status(ppm):
+    if ppm < 0.6:
+        return "정상", 0x00FF00  # Green
+    elif ppm < 5:
+        return "주의", 0xFFFF00  # Yellow
+    elif ppm < 20:
+        return "위험", 0xFFA500  # Orange
+    else:
+        return "매우 위험", 0xFF0000  # Red
+</code>
+</pre>
+
+<pre>
+<code>
+def send_discord_alert(ppm):
+    """CO 농도별 단계 알림 전송"""
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    status, color = get_co_status(ppm)
+    description = f"현재 CO 농도는 {ppm:.2f} ppm 입니다."
+    title = f"⚠️ CO {status} 상태 ⚠️"
+    
+    data = {
+        "content": "@here",
+        "embeds": [{
+            "title": title,
+            "description": description,
+            "color": color,
+            "fields": [
+                {"name": "상태", "value": status, "inline": True},
+                {"name": "측정 시간", "value": current_time, "inline": False}
+            ],
+            "footer": {"text": "CO 모니터링 시스템"}
+        }]
+    }
+
+    try:
+        response = requests.post(WEBHOOK_URL, json=data)
+        if response.status_code == 204:
+            print(f"[{current_time}] 디스코드 알림 전송 성공: {ppm:.2f} ppm ({status})")
+        else:
+            print(f"디스코드 알림 전송 실패: {response.status_code}")
+    except Exception as e:
+        print(f"디스코드 알림 오류: {str(e)}")
+</code>
+</pre>
+
+<pre>
+<code>
+# 최근 1분간 데이터 저장용 (1초 간격 -> 60개 데이터)
+ppm_buffer = []
+
+def add_ppm_data(ppm):
+    ppm_buffer.append((datetime.now(), ppm))
+    # 1분보다 오래된 데이터 제거
+    cutoff = datetime.now() - timedelta(seconds=60)
+    # timedelta import를 위해 위 코드 상단에 from datetime import datetime, timedelta 추가해야 함
+    while ppm_buffer and ppm_buffer[0][0] < cutoff:
+        ppm_buffer.pop(0)
+
+def predict_time_to_reach_threshold(threshold):
+    # 최근 1분간 데이터 사용
+    # ppm_buffer: [(time, ppm), ...]
+    if len(ppm_buffer) < 2:
+        return "데이터가 충분하지 않아 예측 불가합니다."
+
+    # 시간축을 초 단위로 변환
+    base_time = ppm_buffer[0][0]
+    times = np.array([(t[0]-base_time).total_seconds() for t in ppm_buffer])
+    ppms = np.array([t[1] for t in ppm_buffer])
+
+    # 선형 회귀
+    # y = m*x + c
+    # np.polyfit(x, y, 1) -> (m, c)
+    m, c = np.polyfit(times, ppms, 1)
+
+    # 현재 마지막 값 기준으로 앞으로도 m(기울기)로 증가한다고 가정
+    # threshold = m*x + c -> x = (threshold - c)/m
+    if m <= 0:
+        return "CO 농도가 증가하는 추세가 아닙니다. 환기가 급하지 않을 수 있습니다."
+
+    x_threshold = (threshold - c)/m
+    current_time_sec = (ppm_buffer[-1][0]-base_time).total_seconds()
+
+    if x_threshold <= current_time_sec:
+        return "이미 해당 임계값에 도달한 상태로 보입니다."
+
+    delta = x_threshold - current_time_sec
+    hours = delta // 3600  
+    minutes = (delta % 3600) // 60  
+    seconds = delta % 60  
+    return f"{int(hours)}시간 {int(minutes)}분 {int(seconds)}초 후에, 즉 CO 농도가 {threshold}ppm에 도달할 것으로 예상됩니다."
+</code>
+</pre>
+
+<pre>
+<code>
+use_functions = [
+    {
+        "type": "function",
+        "function": {
+        "name": "predict_time_to_reach_threshold",
+        "description": "지정한 임계값(ppm)에 도달하는데 걸리는 예상 시간을 반환",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "threshold": {
+                    "type": "number",
+                    "description": "CO 임계값(ppm)"
+                }
+            },
+            "required": ["threshold"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+        "name": "add_ppm_data",
+        "description": "1분간 CO 데이터를 모아주는 함",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "ppm": {
+                    "type": "number",
+                    "description": "CO 측정"
+                }
+            },
+            "required": ["ppm"]
+            }
+        }
+    }
+]
+</code>
+</pre>
+
+<pre>
+<code>
+def ask_openai(llm_model, messages, user_message, functions = ''):
+    client = OpenAI()
+    proc_messages = messages
+
+    if user_message != '':
+        proc_messages.append({"role": "user", "content": user_message})
+
+    if functions == '':
+        response = client.chat.completions.create(model=llm_model, messages=proc_messages, temperature = 1.0)
+    else:
+        response = client.chat.completions.create(model=llm_model, messages=proc_messages, tools=use_functions, tool_choice="auto") # 이전 코드와 바뀐 부분
+
+    response_message = response.choices[0].message
+    tool_calls = response_message.tool_calls
+
+    if tool_calls:
+        # Step 3: call the function
+        # Note: the JSON response may not always be valid; be sure to handle errors
+
+        available_functions = {
+            # "add_ppm_data": add_ppm_data,		
+            "predict_time_to_reach_threshold": predict_time_to_reach_threshold
+        }
+
+        messages.append(response_message)  # extend conversation with assistant's reply
+        print(response_message)
+        # Step 4: send the info for each function call and function response to GPT
+        for tool_call in tool_calls:
+            function_name = tool_call.function.name
+            function_to_call = available_functions[function_name]
+            function_args = json.loads(tool_call.function.arguments)
+            print(function_args)
+
+            if 'user_prompt' in function_args:
+                function_response = function_to_call(function_args.get('user_prompt'))
+            else:
+                function_response = function_to_call(**function_args)
+
+            proc_messages.append(
+                {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": function_name,
+                    "content": function_response,
+                }
+            )  # extend conversation with function response
+        second_response = client.chat.completions.create(
+            model=llm_model,
+            messages=messages,
+        )  # get a new response from GPT where it can see the function response
+
+        assistant_message = second_response.choices[0].message.content
+    else:
+        assistant_message = response_message.content
+
+    text = assistant_message.replace('\n', ' ').replace(' .', '.').strip()
+
+
+    proc_messages.append({"role": "assistant", "content": assistant_message})
+
+    return text # proc_messages, 
+</code>
+</pre>
+
+<pre>
+<code>
+import gradio as gr
+
+def gradio_interface(user_message):
+    messages = [
+    {"role": "system", "content": "당신은 CO 농도 예측 전문가입니다. 사용자 질문에 대해 필요하면 함수를 호출하여 답해주세요."},
+    {"role": "user", "content": "임계값은 10입니다. 환기가 언제 필요할까요?"}
+    ]
+    answer = ask_openai("gpt-4o-mini", messages, user_message, functions= use_functions)
+    return answer
+
+
+
+# Gradio 인터페이스
+iface = gr.Interface(fn=gradio_interface,
+                     inputs="text",
+                     outputs="text",
+                     title="CO 모니터링 & 예측 챗봇",
+                     description="CO 농도 상태 및 환기가 필요한 시간 예측")
+</code>
+</pre>
+
+<pre>
+<code>
+from datetime import timedelta
+init_csv_file(CSV_FILE_PATH)
+
+try:
+    ser = serial.Serial(PORT, 9600, timeout=1)
+    print(f"Arduino 연결됨: {PORT}")
+    time.sleep(1)  # 시리얼 초기화 대기 시간
+
+    # Gradio 인터페이스 별도 스레드에서 실행
+    import threading
+    server_thread = threading.Thread(target=iface.launch, kwargs={"debug":True}, daemon=True)
+    server_thread.start()
+
+    while True:
+        if ser.in_waiting > 0:
+            line = ser.readline().decode('utf-8').strip()
+            try:
+                ppm = float(line)
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                append_csv_file(CSV_FILE_PATH, current_time, ppm)
+                print(f"CO 농도: {ppm:.2f} ppm")
+
+                add_ppm_data(ppm)
+
+                status, _ = get_co_status(ppm)
+                if status in ["주의", "위험", "매우 위험"]:
+                    send_discord_alert(ppm)
+
+            except ValueError:
+                print(f"잘못된 데이터 수신: {line}")
+
+        # 측정 주기 1초
+        time.sleep(1)
+
+except serial.SerialException as e:
+    print(f"시리얼 연결 오류: {str(e)}")
+except KeyboardInterrupt:
+    print("프로그램 종료 요청 받음")
+finally:
+    if 'ser' in locals() and ser.is_open:
+        ser.close()
+</code>
+</pre>
