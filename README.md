@@ -300,7 +300,8 @@ if __name__ == "__main__":
 ***
 # 여기서부터 코드 정리
 ## 아두이노 IDE
-
+> * MQ-7 센서가 출력하는 아날로그 값을 ppm 단위로 변환하는 내용
+> * 우리가 설정한 기준치(정상, 위험 등)에 넘어섰을 때 부저가 울리도록 하는 내용
 <pre>
 <code>
 const int MQ7_AOUT_PIN = A0;  // MQ-7 센서 아날로그 출력 핀
@@ -363,14 +364,12 @@ void loop() {
 
 </code>
 </pre>
-> * MQ-7 센서가 출력하는 아날로그 값을 ppm 단위로 변환하는 내용
-> * 우리가 설정한 기준치(정상, 위험 등)에 넘어섰을 때 부저가 울리도록 하는 내용
-
 
 
 ***
 ## 디스코드 알림 전송
-
+> * 디스코드 알림 전송하는 내용
+> * 알림 형식: '⚠️ CO {status} 상태 ⚠️', "현재 CO 농도는 {ppm:.2f} ppm 입니다." (현 농도와 상태를 알 수 있음)
 <pre>
 <code>
 import serial
@@ -505,9 +504,6 @@ CSV_FILE_PATH = "/home/dli/CO_ver2/co_readings_Beta.csv"  # CSV 파일 저장 �
 
 * 웹후크 = [https://discord.com/api/webhooks/1313826821787226132/txS4YAXl6tm_5UWQVzSCX0rQRLGOOELs2a_9PIk3vMNALzxxX2r88bDJcZ6f0K5v_3oe]
 
-
-> * 디스코드 알림 전송하는 내용
-> * 알림 형식: '⚠️ CO {status} 상태 ⚠️', "현재 CO 농도는 {ppm:.2f} ppm 입니다." (현 농도와 상태를 알 수 있음)
 
 ***
 ## CO_monitor
