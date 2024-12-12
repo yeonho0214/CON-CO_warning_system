@@ -511,7 +511,7 @@ CSV_FILE_PATH = "/home/dli/CO_ver2/co_readings_Beta.csv"  # CSV 파일 저장 �
 
 ***
 ## CO_monitor
-### 오류가 있던 graido 포함, 답변이 된 version 
+### <오류가 있던 graido 포함, 답변이 된 version>
 
 <pre>
 <code>
@@ -799,7 +799,7 @@ if __name__ == "__main__":
 </pre>
 
 ***
-### 최종 코드
+### <최종 코드>
 <pre>
 <code>
 import serial
