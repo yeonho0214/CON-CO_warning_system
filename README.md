@@ -17,6 +17,7 @@ CON-CO_warning_system
 
 ### 3. 캠핑 CO 중독사고
 > <img src="https://github.com/user-attachments/assets/b12e9047-c89a-4298-837d-5acabe06681d" width="80%" />
+
 > * 해마다 계속해서 증가 추세임.
 
 ## 아두이노를 활용한 센서 및 부저 조립과 구현
