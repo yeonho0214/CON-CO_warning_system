@@ -1,5 +1,22 @@
 CON-CO_warning_system
 =====================
+## 일산화탄소(CO)
+### 1. 일산화탄소란?
+* 무색, 무취 기체로서, 산소가 부족한 상태에서 석탄이나 석유 등 연료가 탈 때 발생
+* 주요 발생원: 연탄, 연소가스, 자동차 배기가스, 산불
+
+### 2. 일산화탄소 중독
+* 주요 증상: 두통, 매스꺼움, 구토, 이명, 호흡곤란, 맥박 증가
+* 일산화탄소 농도별 인체 영향
+> 3200 ppm - 5분 이내 두통, 어지러움, 구토, 20분 이내 사망
+> 1600 ppm - 10분 이내 두통, 어지러움, 구토, 30분 이내 사망
+> 800 ppm - 20분 이내 두통, 어지러움, 구토, 1시간 이내 사망
+> 400 ppm - 1시간 이내 두통, 어지러움, 구토, 3시간 이내 사망
+> 200 ppm - 2~3시간 이내 두통, 피곤, 어지러움
+> 50 ppm - 영향 거의 없음, 작업장 환경기준 허용농도
+
+### 3. 캠핑 CO 중독사고
+> * 해마다 계속해서 증가 추세임
 
 ## 아두이노를 활용한 센서 및 부저 조립과 구현
 
@@ -57,6 +74,12 @@ void loop() {
 ### 2. MQ-7 가스센서
 #### <개요>
 * MQ-7은, MQ-7은 일산화탄소(CO) 감지에 특화된 센서로, 높은 CO 감도와 20~2000ppm의 농도를 측정할 수 있습니다. 히터 전압을 주기적으로 변경하여 작동하며, 주로 보일러실이나 자동차 배기가스 감지에 사용됩니다.
+* MQ-7 특징
+> <img src="https://github.com/user-attachments/assets/bfb6f645-0cb4-4575-8f2f-348e193f5dd4" width="40%" />
+!<img src="https://github.com/user-attachments/assets/fb709418-5ef7-4d99-9015-0b68cc8758cf" width="40%" />
+
+
+
 #### <12/4(수)_JETBOT과 연결 및 측정 시도>
 > <img src="https://github.com/user-attachments/assets/d91a8dbe-538e-4ac1-be59-bfde55e4357c" alt="Image 1" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/c4af8b61-ead2-4e2d-98b6-d1453c07f33d" alt="Image 2" style="width: 50%;"/>
