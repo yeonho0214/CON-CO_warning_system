@@ -31,8 +31,8 @@ CON-CO_warning_system
 > <img src="https://github.com/user-attachments/assets/d4c0ebcd-934b-4385-bb7f-859cee0ae6cc" alt="Image 2" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/087457fa-1963-446a-8c8b-a9a2f2d3a42c" alt="Image" style="width: 30%;"/>
 
-> * mq 9을 블로그에 나오는데로 다 해봤는데 농도 변화가 크게 차이가 나지 않는다. (블로그 링크 : [https://cafe.naver.com/mechawiki/3521])
-> * mq9 이랑 mq7의 차이는 7이 일산화탄소를 집중적으로 더 잘잡는다고 해서 7으로 교체했다.
+> * MQ-9을 블로그에 나오는데로 다 해봤는데 농도 변화가 크게 차이가 나지 않는다. (블로그 링크 : [https://cafe.naver.com/mechawiki/3521])
+> * MQ-9이랑 MQ-7의 차이는 7이 일산화탄소를 집중적으로 더 잘잡는다고 해서 7으로 교체했다.
 >    * MQ-7은, CO 감지에만 초점이 맞춰져 있어서 감지 범위가 20~2000 ppm으로 넓으며, 농도가 더 높은 환경에서도 안정적으로 작동한다.
 >    * MQ-9은 다양한 가스와의 반응을 고려해야 하므로, 특정 가스(CO)에 대한 민감도가 상대적으로 낮아질 수 있다.
 
@@ -74,12 +74,10 @@ void loop() {
 ***
 ### 2. MQ-7 가스센서
 #### <개요>
-* MQ-7은, MQ-7은 일산화탄소(CO) 감지에 특화된 센서로, 높은 CO 감도와 20~2000ppm의 농도를 측정할 수 있습니다. 히터 전압을 주기적으로 변경하여 작동하며, 주로 보일러실이나 자동차 배기가스 감지에 사용됩니다.
-* MQ-7 특징
 > <img src="https://github.com/user-attachments/assets/bfb6f645-0cb4-4575-8f2f-348e193f5dd4" width="40%" />
-!<img src="https://github.com/user-attachments/assets/fb709418-5ef7-4d99-9015-0b68cc8758cf" width="40%" />
-
-
+* MQ-7은, MQ-7은 일산화탄소(CO) 감지에 특화된 센서로, 높은 CO 감도와 20~2000ppm의 농도를 측정할 수 있습니다. 히터 전압을 주기적으로 변경하여 작동하며, 주로 보일러실이나 자동차 배기가스 감지에 사용됩니다.
+* MQ-7 작동 방식
+  * <img src="https://github.com/user-attachments/assets/fb709418-5ef7-4d99-9015-0b68cc8758cf" width="40%" />
 
 #### <12/4(수)_JETBOT과 연결 및 측정 시도>
 > <img src="https://github.com/user-attachments/assets/d91a8dbe-538e-4ac1-be59-bfde55e4357c" alt="Image 1" style="width: 30%;"/>
@@ -95,8 +93,8 @@ void loop() {
 * MQ-7 센서로 측정한 CO 농도를 일정 기준에 맞춰 상태(정상, 위험 등)를  특정한 후 Discord로 주의하라는 메시지 알림을 사용자에게 보낸다.
     * <img src="https://github.com/user-attachments/assets/123dbc8f-32cc-46bb-8721-32488e455aec" width="50%" />
 
-* 능동 피에조 부저를 설치해 정상 상태가 아닌 CO 농도에서 소리 알람이 발생하도록 설계한다.
-    * 특정 CO 농도(ppm)에 따라 알람 발생함.
+* 능동 피에조 부저를 설치해 특정 CO 농도(ppm)에서 소리 알람이 발생하도록 설계한다.
+    * 설정한 CO 농도값에 따라 다른 주파수와 소리 지속 시간, 소리 대기 시간이 존재함.
     * <img src="https://github.com/user-attachments/assets/27d8d720-a6f5-44b3-8561-f2664e0d9454" width="50%" />
 
 
@@ -109,19 +107,13 @@ void loop() {
 
 > * 최종적인 실험에서 1.5g 숯 3개를 사용하였다.
 > * 처음에는 200, 800, 3200 ppm (WHO 권고 기준)에서 부저 알림 및 디스코드 경고 알림을 설정하였다.
->   * 정상: ppm < 200 (부저 꺼짐)
->   * 주의: 200 <= ppm < 800 (낮은 톤(1000Hz)으로 짧게 울림)
->   * 위험: 800 <= ppm < 3200 (중간 톤(2000Hz)으로 울림)
->   * 매우 위험: 3200 <= ppm (높은 톤(3000Hz)으로 계속 울림)
-> * 실험 진행 도중에 농도가 충분히 높이 올라가지 않았고, 여건상 높은 CO 농도를 측정하기 어려움이 있었다.
->    * 양초 1개/5개, 숯(작은 크기) 1개로 시도하였으나 여전히 낮은 농도에 머무름.
->    * 기준치를 변경하기로 하고, 200ppm을 0.6ppm으로, 800ppm을 5ppm로, 3200ppm 20ppm으로 바꿈.
+> * 그러나 실험 진행 중에 농도가 충분히 높이 올라가지 않았고, 여건상 높은 CO 농도를 측정하기 어려움이 있었다.
+>    * 양초 1개/5개, 작은 크기의 숯으로 시도하였으나 여전히 낮은 농도에 머무름.
+>    * 해결 방법 : 설정 기준치를 변경함.
 >        * <img src="https://github.com/user-attachments/assets/ab9dee1c-4524-4301-b318-69248710e9f6" width="50%" />
 
 
-
-
-* MQ-7 사용, 디스코드 알림 전송, 부저 알림 코드  
+* MQ-7 가스 센서, 디스코드 알림 전송 및 부저 알림 코드  
 <pre>
 <code>
 const int MQ7_AOUT_PIN = A0; // MQ-7의 AOUT 핀이 연결된 아날로그 핀
@@ -351,16 +343,20 @@ if __name__ == "__main__":
 
 ## 환기 예측 시스템
 #### <개요>
-> <img src="https://github.com/user-attachments/assets/4ac5c5f7-ab74-40dc-a204-7cbe63d1e8a7" width="80%" />
-* 목적 : 일산화탄소 농도에 따른 적절한 환기 시점을 예측하기 위해 개발.
+* 목적: 일산화탄소 농도에 따른 적절한 환기 시점을 예측하기 위해 개발.
 * 사용 기술
     * 선형 회귀: 농도 증가 추세를 기반으로 임계치 도달 시간을 예측.
     * Gradio 기반 챗봇: 사용자가 질문하면 예상 환기 시점을 간단히 안내.
-#### <CO 모니터링&예측 챗봇 사용예시>
-<img src="https://github.com/user-attachments/assets/748b8012-20eb-4c25-83a5-3323375beb29" width="80%" />
-<img src="https://github.com/user-attachments/assets/96b9d44c-d844-480e-9bc4-e95d7c51c45b" width="80%" />
+* 사용 원리(시각화)
+> <img src="https://github.com/user-attachments/assets/4ac5c5f7-ab74-40dc-a204-7cbe63d1e8a7" width="80%" /> 
+#### <CO 모니터링 & 예측 챗봇 사용 예시>
+> (예시 1)
+> <img src="https://github.com/user-attachments/assets/748b8012-20eb-4c25-83a5-3323375beb29" width="80%" />
 
+> (예시 2)
+> <img src="https://github.com/user-attachments/assets/96b9d44c-d844-480e-9bc4-e95d7c51c45b" width="80%" />
 
+* 환기 예측 시스템 코드 간단설명
 > 1. OpenAI Function을 통한 사용자 질의 처리 : 사용자가 CO 농도 관련 질문을 입력하면, 적절한 답변을 제공하거나 CO 임계값에 도달할 시간을 예측한다.
 >    * 'openai_chat(query)' : 필요한 경우 함수를 호출해 임계값 도달 시간을 계산한 후 답변을 생성.
 >    * 'gradio_interface(query)' : OpenAI Function의 결과를 Gradio 인터페이스에서 출력하도록 연결.
