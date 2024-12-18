@@ -23,8 +23,7 @@ CON-CO_warning_system
 ## Sensor and Buzzer Assembly with Arduino
 
 ### 1. MQ-9 Gas Sensor
-***
-#### <Intro>
+#### <Outline>
 * The MQ-9 gas sensor detects the concentration of various gases, particularly carbon monoxide (CO), methane (CH₄), and liquefied petroleum gas (LPG). It is used for gas leak detection, air quality monitoring, and industrial safety systems.
 #### <December 2nd (Mon) Attempt: Connection and Measurement with JETBOT>
 > <img src="https://github.com/user-attachments/assets/f15ed0e5-3371-40a2-96b0-ed486a6294dc" alt="Image 1" style="width: 30%;"/>
