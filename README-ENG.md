@@ -23,7 +23,8 @@ CON-CO_warning_system
 ## Sensor and Buzzer Assembly with Arduino
 
 ### 1. MQ-9 Gas Sensor
-* <Outline> The MQ-9 gas sensor detects the concentration of various gases, particularly carbon monoxide (CO), methane (CH₄), and liquefied petroleum gas (LPG). It is used for gas leak detection, air quality monitoring, and industrial safety systems.
+#### Outline
+*  The MQ-9 gas sensor detects the concentration of various gases, particularly carbon monoxide (CO), methane (CH₄), and liquefied petroleum gas (LPG). It is used for gas leak detection, air quality monitoring, and industrial safety systems.
 #### <December 2nd (Mon) Attempt: Connection and Measurement with JETBOT>
 > <img src="https://github.com/user-attachments/assets/f15ed0e5-3371-40a2-96b0-ed486a6294dc" alt="Image 1" style="width: 30%;"/>
 > <img src="https://github.com/user-attachments/assets/12600b08-ccf8-4090-a4b6-e7ea8cf2b8ab" alt="Image 2" style="width: 30%;"/>
@@ -71,9 +72,10 @@ void loop() {
 
 
 ***
-### 2. MQ-7 Gas Senso
+### 2. MQ-7 Gas Sensor
+#### Outline
 > <img src="https://github.com/user-attachments/assets/bfb6f645-0cb4-4575-8f2f-348e193f5dd4" width="40%" />
-* <Outline> MQ-7 is specialized for carbon monoxide (CO) detection with high sensitivity and a measurement range of 20-2000 ppm. It operates by periodically changing heater voltage, ideal for boiler rooms and vehicle exhaust detection.
+* MQ-7 is specialized for carbon monoxide (CO) detection with high sensitivity and a measurement range of 20-2000 ppm. It operates by periodically changing heater voltage, ideal for boiler rooms and vehicle exhaust detection.
 * Operating Mechanism:
   * <img src="https://github.com/user-attachments/assets/fb709418-5ef7-4d99-9015-0b68cc8758cf" width="40%" />
 
@@ -86,6 +88,7 @@ void loop() {
 
 ***
 ### 3. Discord Alerts and Buzzer Notifications
+#### Outline
 * Discord Alerts: Send alerts via Discord when CO concentration exceeds thresholds.
     * <img src="https://github.com/user-attachments/assets/123dbc8f-32cc-46bb-8721-32488e455aec" width="50%" />
 
