@@ -497,7 +497,7 @@ def append_csv_file(filename, timestamp_str, ppm_value):
         writer.writerow([timestamp_str, ppm_value])
 
 def get_co_status(ppm):
-    if ppm < 0.6:
+    if ppm < 1:
         return "정상", 0x00FF00  # Green
     elif ppm < 5:
         return "주의", 0xFFFF00  # Yellow
@@ -785,15 +785,17 @@ finally:
 ## #1 아두이노 IDE
 > * MQ-7 센서가 출력하는 아날로그 값을 ppm 단위로 변환하는 내용
 > * 우리가 설정한 기준치(정상, 위험 등)에 넘어섰을 때 부저가 울리도록 하는 내용
+> * RO 값을 보정하는 내용
+
 <pre>
 <code>
 const int MQ7_AOUT_PIN = A0;  // MQ-7 센서 아날로그 출력 핀
 const int buzzerPin = 8;      // 피에조 부저 연결 핀 (디지털 핀 8)
-const float VCC = 5.0;       
-const float RL = 10.0;       
-const float R0 = 10.0;       
-const float a = 100.0;       
-const float b = -1.5;        
+const float VCC = 5.0;     // Arduino 공급전압  
+const float RL = 10.0;   // 로드 저항 값 - 센서 회로에 사용 (보통 10kΩ)
+const float R0 = 11.37;    // MQ-7 센서 기준 저항  
+const float a = 19.32;    // MQ-7 특정곡선 상수  
+const float b = -0.64;    // MQ-7 특정곡선 상수  
 
 void setup() {
   Serial.begin(9600);
@@ -816,17 +818,17 @@ void loop() {
   // 주의: 200 ≤ ppm < 800
   // 위험: 800 ≤ ppm < 3200
   // 매우 위험: ppm ≥ 3200
-  if (ppm < 200) {
+  if (ppm < 1) {
     // 정상: 부저 꺼짐
     noTone(buzzerPin);
-  } else if (ppm < 800) {
+  } else if (ppm < 5) {
     // 주의: 낮은 톤(1000Hz)으로 짧게 울림
     // 1초 루프 내에서 짧게 200ms 울리고 꺼짐
     tone(buzzerPin, 1000, 200);
     delay(200);
     noTone(buzzerPin);
     // 나머지 시간 대기
-  } else if (ppm < 3200) {
+  } else if (ppm < 20) {
     // 위험: 중간 톤(2000Hz)으로 울림
     // 조금 더 길게 500ms 울리고 500ms 꺼짐 (총 1초 주기)
     tone(buzzerPin, 2000, 500);
@@ -844,10 +846,67 @@ void loop() {
 
   delay(1000); // 다음 측정까지 1초 대기
 }
-
 </code>
 </pre>
 
+<pre>
+<code>
+const int MQ7_PIN = A0;   // MQ-7 센서 아날로그 출력 핀
+const float VCC = 5.0;    // Arduino 공급 전압
+const float RL = 10;    // 로드 저항값(kΩ) - 사용자가 회로 설계 시 정한 값
+const float CLEAN_AIR_RATIO = 1; // 깨끗한 공기에서 RS/R0 비율 (예: MQ-7 데이터시트 참조)
+float R0 = 28.73; // 초기값, 실제 보정 후에 업데이트
+
+void setup() {
+  Serial.begin(9600);
+  // 센서 예열 시간 (예: MQ-7은 10~20분 이상 권장, 여기서는 간단히 2분 예)
+  // 실제로는 setup 후 일정 시간 대기하거나, 측정 시작 전 기다린 후 보정할 것.
+  Serial.println("Sensor preheating...");
+  delay(10000); // 1분 예열 (실제 권장시간 확인)
+
+  Serial.println("Calibrating R0. Please ensure the sensor is in clean air.");
+  // 보정 측정값 여러 번 읽기 (예: 50회) 평균을 내어 안정적인 값 사용.
+  float avgRS = 0;
+  int numReadings = 50;
+  for (int i = 0; i < numReadings; i++) {
+    float sensorValue = analogRead(MQ7_PIN);
+    float voltage = (sensorValue / 1023.0) * VCC;
+    float RS = RL * (VCC - voltage) / voltage; // RS 계산식
+    avgRS += RS;
+    delay(200); // 각 측정 사이 약간 대기
+  }
+  avgRS = avgRS / numReadings; // 평균 RS
+
+  // R0 계산: R0 = RS / (RS/R0(clean air))
+  R0 = avgRS / CLEAN_AIR_RATIO;
+
+  Serial.print("Calibrated R0: ");
+  Serial.println(R0, 4);
+}
+
+void loop() {
+  // 보정 완료 후, ppm 계산 시 R0 사용 예제
+  // ppm = a * (RS/R0)^b 형태를 사용
+  // 여기서는 단순히 R0가 제대로 계산되었는지 확인하는 코드만 둠.
+  
+  float sensorValue = analogRead(MQ7_PIN);
+  float voltage = (sensorValue / 1023.0) * VCC;
+  float RS = RL * (VCC - voltage) / voltage;
+  float ratio = RS / R0;  // Ratio = RS/R0
+
+  // 예: MQ-7 데이터시트 곡선 상수 a,b 정의 후 ppm 계산 가능
+  // float a = 100.0;
+  // float b = -1.5;
+  // float ppm = a * pow(ratio, b);
+
+  Serial.print("RS: "); Serial.print(RS);
+  Serial.print(" R0: "); Serial.print(R0);
+  Serial.print(" Ratio: "); Serial.println(ratio);
+  
+  delay(1000);
+}
+</code>
+</pre>
 
 ***
 ## #2 디스코드 알림 전송
@@ -869,10 +928,10 @@ CSV_FILE_PATH = "/home/your_username/data/co_readings.csv"  # CSV 파일 저장 
 # ==============================================
 
 # 상태 기준
-# 정상: ppm < 200
-# 주의: 200 ≤ ppm < 800
-# 위험: 800 ≤ ppm < 3200
-# 매우 위험: ppm ≥ 3200
+# 정상: ppm < 1
+# 주의: 1 ≤ ppm < 5
+# 위험: 5 ≤ ppm < 20
+# 매우 위험: ppm ≥ 20
 
 def init_csv_file(filename):
     dir_path = os.path.dirname(filename)
@@ -891,11 +950,11 @@ def append_csv_file(filename, timestamp_str, ppm_value):
         writer.writerow([timestamp_str, ppm_value])
 
 def get_co_status(ppm):
-    if ppm < 200:
+    if ppm < 1:
         return "정상", 0x00FF00  # Green
-    elif ppm < 800:
+    elif ppm < 5:
         return "주의", 0xFFFF00  # Yellow
-    elif ppm < 3200:
+    elif ppm < 20:
         return "위험", 0xFFA500  # Orange-ish
     else:
         return "매우 위험", 0xFF0000  # Red
@@ -1040,7 +1099,7 @@ def append_csv_file(filename, timestamp_str, ppm_value):
         writer.writerow([timestamp_str, ppm_value])
 
 def get_co_status(ppm):
-    if ppm < 0.6:
+    if ppm < 1:
         return "정상", 0x00FF00  # Green
     elif ppm < 5:
         return "주의", 0xFFFF00  # Yellow
@@ -1049,6 +1108,7 @@ def get_co_status(ppm):
     else:
         return "매우 위험", 0xFF0000  # Red
 
+        
 def send_discord_alert(ppm):
     """CO 농도별 단계 알림 전송"""
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1297,6 +1357,8 @@ import json
 PORT = "/dev/ttyUSB0"  # Jetson Nano에서 Arduino 포트 확인 (예: /dev/ttyACM0)
 WEBHOOK_URL = "https://discord.com/api/webhooks/1313826821787226132/txS4YAXl6tm_5UWQVzSCX0rQRLGOOELs2a_9PIk3vMNALzxxX2r88bDJcZ6f0K5v_3oe"  # 실제 Discord Webhook URL
 CSV_FILE_PATH = "/home/dli/CO_ver2/co_readings_gradio.csv"  # CSV 파일 저장 경로
+os.environ['OPENAI_API_KEY'] = ''
+OpenAI.api_key = os.getenv("OPENAI_API_KEY")
 # ==============================================
 </code>
 </pre>
@@ -1326,7 +1388,7 @@ def append_csv_file(filename, timestamp_str, ppm_value):
         writer.writerow([timestamp_str, ppm_value])
 
 def get_co_status(ppm):
-    if ppm < 0.6:
+    if ppm < 1:
         return "정상", 0x00FF00  # Green
     elif ppm < 5:
         return "주의", 0xFFFF00  # Yellow
@@ -1522,7 +1584,7 @@ def ask_openai(llm_model, messages, user_message, functions = ''):
 
     proc_messages.append({"role": "assistant", "content": assistant_message})
 
-    return text # proc_messages, 
+    return text # proc_messages
 </code>
 </pre>
 
@@ -1551,6 +1613,27 @@ iface = gr.Interface(fn=gradio_interface,
 
 <pre>
 <code>
+import gradio as gr
+
+def gradio_interface(user_message):
+    messages = [
+    {"role": "system", "content": "당신은 CO 농도 예측 전문가입니다. 사용자 질문에 대해 필요하면 함수를 호출하여 답해주세요."},
+    {"role": "user", "content": "임계값은 10입니다. 환기가 언제 필요할까요?"}
+    ]
+    answer = ask_openai("gpt-4o-mini", messages, user_message, functions= use_functions)
+    return answer
+
+
+
+# Gradio 인터페이스
+iface = gr.Interface(fn=gradio_interface,
+                     inputs="text",
+                     outputs="text",
+                     title="CO 모니터링 & 예측 챗봇",
+                     description="CO 농도 상태 및 환기가 필요한 시간 예측")
+
+
+
 from datetime import timedelta
 init_csv_file(CSV_FILE_PATH)
 
