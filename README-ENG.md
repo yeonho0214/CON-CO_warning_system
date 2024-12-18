@@ -709,7 +709,6 @@ finally:
 </pre>
 ***
 ## Conclusion
-
 #### <Points for Improvement>
 > * Limitations in Experimental Environment and Threshold Settings
 >     * Could not utilize actual CO (ppm) reference data, and proceeded based on arbitrary values due to experimental constraints.
@@ -723,7 +722,9 @@ finally:
 >    * 1) CO Concentration Data: Enhance model reliability by collecting CO concentration data over extended periods in diverse environments.
 >    * 2) Various Algorithms: Compare and analyze different algorithms to select the optimal methodology.
 >    * 3) Practical System: Develop a practical system that can be utilized across diverse environments.
+
 ***
+
 # <Code Refinement Starts Here (Including Trial and Error)>
 
 ## #1 Arduino IDE
