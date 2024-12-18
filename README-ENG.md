@@ -342,7 +342,7 @@ if __name__ == "__main__":
 </pre>
 
 ## Ventilation Prediction System
-#### <Introsuction>
+#### <Introduction>
 * Purpose: Predict appropriate ventilation times based on CO concentration trends.
 * Technology Used:
     * Linear Regression: Predict threshold arrival time based on concentration trends.
@@ -724,7 +724,7 @@ finally:
 >    * 2) Various Algorithms: Compare and analyze different algorithms to select the optimal methodology.
 >    * 3) Practical System: Develop a practical system that can be utilized across diverse environments.
 ***
-# <Code Refinement Starts Here> (Including Trial and Error)
+# <Code Refinement Starts Here>(Including Trial and Error)
 
 ## #1 Arduino IDE
 > * Converting the analog values output by the MQ-7 sensor into ppm units.
