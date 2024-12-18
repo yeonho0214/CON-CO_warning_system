@@ -709,7 +709,9 @@ finally:
 </pre>
 ***
 ## Conclusion
+
 #### <Points for Improvement>
+
 > * Limitations in Experimental Environment and Threshold Settings
 >     * Could not utilize actual CO (ppm) reference data, and proceeded based on arbitrary values due to experimental constraints.
 > * Simplicity of Analysis
@@ -718,6 +720,7 @@ finally:
 >     * Analysis was based on data from only the past minute, without reflecting a larger dataset.
 
 #### <Suggestions for Improvement>
+
 > * Collect more data and apply various algorithms to develop a highly reliable and practical system.
 >    * 1) CO Concentration Data: Enhance model reliability by collecting CO concentration data over extended periods in diverse environments.
 >    * 2) Various Algorithms: Compare and analyze different algorithms to select the optimal methodology.
