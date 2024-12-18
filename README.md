@@ -114,42 +114,131 @@ void loop() {
 >        * <img src="https://github.com/user-attachments/assets/ab9dee1c-4524-4301-b318-69248710e9f6" width="50%" />
 
 
-* MQ-7 가스 센서, 디스코드 알림 전송 및 부저 알림 코드  
+* MQ-7 가스 센서, 부저 알림 아두이노 IDE
 <pre>
 <code>
-const int MQ7_AOUT_PIN = A0; // MQ-7의 AOUT 핀이 연결된 아날로그 핀
-const float VCC = 5.0;       // 아두이노 공급 전압
-const float RL = 10.0;       // 로드 저항 (단위: kΩ)
-const float R0 = 10.0;       // 깨끗한 공기에서의 센서 저항 (단위: kΩ)
-const float a = 100.0;       // 데이터시트에서 제공되는 상수 a
-const float b = -1.5;        // 데이터시트에서 제공되는 상수 b
+const int MQ7_AOUT_PIN = A0;  // MQ-7 센서 아날로그 출력 핀
+const int buzzerPin = 8;      // 피에조 부저 연결 핀 (디지털 핀 8)
+const float VCC = 5.0;     // Arduino 공급전압  
+const float RL = 10.0;   // 로드 저항 값 - 센서 회로에 사용 (보통 10kΩ)
+const float R0 = 11.37;    // MQ-7 센서 기준 저항  
+const float a = 19.32;    // MQ-7 특정곡선 상수  
+const float b = -0.64;    // MQ-7 특정곡선 상수  
 
 void setup() {
-  Serial.begin(9600); // 시리얼 통신 시작
+  Serial.begin(9600);
+  pinMode(buzzerPin, OUTPUT);
+  digitalWrite(buzzerPin, LOW); // 초기 상태: 부저 OFF
 }
 
 void loop() {
-  int sensorValue = analogRead(MQ7_AOUT_PIN); // 아날로그 값 읽기
-  float voltage = (sensorValue / 1023.0) * VCC; // 전압 계산
-  float RS = RL * (VCC - voltage) / voltage;   // 센서 저항 계산
-  float ratio = RS / R0;                       // 센서 비율 계산
-  float ppm = a * pow(ratio, b);               // PPM 계산
+  int sensorValue = analogRead(MQ7_AOUT_PIN);
+  float voltage = (sensorValue / 1023.0) * VCC;
+  float RS = RL * (VCC - voltage) / voltage;
+  float ratio = RS / R0;
+  float ppm = a * pow(ratio, b);
 
-  // 결과 출력
-  Serial.print("Sensor Value: ");
-  Serial.print(sensorValue);
-  Serial.print(" | Voltage: ");
-  Serial.print(voltage);
-  Serial.print(" V | CO Concentration: ");
-  Serial.print(ppm);
-  Serial.println(" ppm");
+  // ppm 값을 시리얼로 전송
+  Serial.println(ppm);
 
-  delay(1000); // 1초 간격으로 업데이트
+  // 상태 판단
+  // 정상: ppm < 200
+  // 주의: 200 ≤ ppm < 800
+  // 위험: 800 ≤ ppm < 3200
+  // 매우 위험: ppm ≥ 3200
+  if (ppm < 1) {
+    // 정상: 부저 꺼짐
+    noTone(buzzerPin);
+  } else if (ppm < 5) {
+    // 주의: 낮은 톤(1000Hz)으로 짧게 울림
+    // 1초 루프 내에서 짧게 200ms 울리고 꺼짐
+    tone(buzzerPin, 1000, 200);
+    delay(200);
+    noTone(buzzerPin);
+    // 나머지 시간 대기
+  } else if (ppm < 20) {
+    // 위험: 중간 톤(2000Hz)으로 울림
+    // 조금 더 길게 500ms 울리고 500ms 꺼짐 (총 1초 주기)
+    tone(buzzerPin, 2000, 500);
+    delay(500);
+    noTone(buzzerPin);
+    delay(500);
+  } else {
+    // 매우 위험: 높은 톤(3000Hz)으로 계속 울림
+    // 여기서는 tone을 계속 주기 어렵기 때문에 다음 루프에서도 같은 상태이면 연속음에 가깝게
+    tone(buzzerPin, 3000); 
+    // 1초 기다린 후 다시 loop 진입 -> 사실상 계속 울림
+    delay(1000);
+    return; // 아래 delay(1000)로 안 내려가도록
+  }
+
+  delay(1000); // 다음 측정까지 1초 대기
 }
 </code>
 </pre>
 
+* RO 보정 아두이노 IDE
+<pre>
+<code>
+const int MQ7_PIN = A0;   // MQ-7 센서 아날로그 출력 핀
+const float VCC = 5.0;    // Arduino 공급 전압
+const float RL = 10;    // 로드 저항값(kΩ) - 사용자가 회로 설계 시 정한 값
+const float CLEAN_AIR_RATIO = 1; // 깨끗한 공기에서 RS/R0 비율 (예: MQ-7 데이터시트 참조)
+float R0 = 28.73; // 초기값, 실제 보정 후에 업데이트
 
+void setup() {
+  Serial.begin(9600);
+  // 센서 예열 시간 (예: MQ-7은 10~20분 이상 권장, 여기서는 간단히 2분 예)
+  // 실제로는 setup 후 일정 시간 대기하거나, 측정 시작 전 기다린 후 보정할 것.
+  Serial.println("Sensor preheating...");
+  delay(10000); // 1분 예열 (실제 권장시간 확인)
+
+  Serial.println("Calibrating R0. Please ensure the sensor is in clean air.");
+  // 보정 측정값 여러 번 읽기 (예: 50회) 평균을 내어 안정적인 값 사용.
+  float avgRS = 0;
+  int numReadings = 50;
+  for (int i = 0; i < numReadings; i++) {
+    float sensorValue = analogRead(MQ7_PIN);
+    float voltage = (sensorValue / 1023.0) * VCC;
+    float RS = RL * (VCC - voltage) / voltage; // RS 계산식
+    avgRS += RS;
+    delay(200); // 각 측정 사이 약간 대기
+  }
+  avgRS = avgRS / numReadings; // 평균 RS
+
+  // R0 계산: R0 = RS / (RS/R0(clean air))
+  R0 = avgRS / CLEAN_AIR_RATIO;
+
+  Serial.print("Calibrated R0: ");
+  Serial.println(R0, 4);
+}
+
+void loop() {
+  // 보정 완료 후, ppm 계산 시 R0 사용 예제
+  // ppm = a * (RS/R0)^b 형태를 사용
+  // 여기서는 단순히 R0가 제대로 계산되었는지 확인하는 코드만 둠.
+  
+  float sensorValue = analogRead(MQ7_PIN);
+  float voltage = (sensorValue / 1023.0) * VCC;
+  float RS = RL * (VCC - voltage) / voltage;
+  float ratio = RS / R0;  // Ratio = RS/R0
+
+  // 예: MQ-7 데이터시트 곡선 상수 a,b 정의 후 ppm 계산 가능
+  // float a = 100.0;
+  // float b = -1.5;
+  // float ppm = a * pow(ratio, b);
+
+  Serial.print("RS: "); Serial.print(RS);
+  Serial.print(" R0: "); Serial.print(R0);
+  Serial.print(" Ratio: "); Serial.println(ratio);
+  
+  delay(1000);
+}
+</code>
+</pre>
+
+    
+* 디스코드 알림 전송
 <pre>
 <code>
 #include <WiFi.h>
@@ -224,45 +313,11 @@ void sendToDiscord(float ppm) {
     }
 
     http.end(); // HTTP 연결 종료
-  } else {
-    Serial.println("WiFi not connected!");
-  }
-}
-</code>
-</pre>
-
-
-
-<pre>
-<code>
-const int MQ7_AOUT_PIN = A0; // MQ-7의 아날로그 출력 핀
-
-const float VCC = 5.0;       // Arduino 공급 전압
-const float RL = 10.0;       // 로드 저항 (단위: kΩ)
-const float R0 = 10.0;       // 깨끗한 공기에서 센서 저항 (단위: kΩ)
-const float a = 100.0;       // 데이터시트에서 제공되는 상수 a
-const float b = -1.5;        // 데이터시트에서 제공되는 상수 b
-
-void setup() {
-  Serial.begin(9600); // 시리얼 통신 시작
-}
-
-void loop() {
-  int sensorValue = analogRead(MQ7_AOUT_PIN); // 센서 값 읽기
-  float voltage = (sensorValue / 1023.0) * VCC; // 전압 계산
-  float RS = RL * (VCC - voltage) / voltage;   // 센서 저항 계산
-  float ratio = RS / R0;                       // 센서 비율 계산
-  float ppm = a * pow(ratio, b);               // PPM 계산
-
-  // 데이터 시리얼 포트로 전송
-  Serial.println(ppm);
-  delay(1000); // 1초 간격
-}
-</code>
-</pre>
-
-* python part
   
+</code>
+</pre>
+
+* Python 코드
 <pre>
 <code>
 import serial
@@ -411,6 +466,7 @@ import json
 # ===== 사용자 환경에 맞게 수정해야 하는 부분 =====
 PORT = "/dev/ttyUSB0"  # Jetson Nano에서 Arduino 포트 확인 (예: /dev/ttyACM0)
 WEBHOOK_URL = "https://discord.com/api/webhooks/1313826821787226132/txS4YAXl6tm_5UWQVzSCX0rQRLGOOELs2a_9PIk3vMNALzxxX2r88bDJcZ6f0K5v_3oe"  # 실제 Discord Webhook URL
+os.environ['OPENAI_API_KEY'] = ''
 CSV_FILE_PATH = "/home/dli/CO_ver2/co_readings_gradio.csv"  # CSV 파일 저장 경로
 # ==============================================
 </code>
