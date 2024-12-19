@@ -94,7 +94,7 @@ void loop() {
 
 * Buzzer Notifications: Integrate an active piezo buzzer for audible alarms at specific CO levels
     * Different frequencies, durations, and pauses correspond to CO levels.
-    * <img src="https://github.com/user-attachments/assets/27d8d720-a6f5-44b3-8561-f2664e0d9454" width="50%" />
+    * <img src="https://github.com/user-attachments/assets/4500ca61-1a3a-4d56-9176-fa78024b690e" alt="image" width="50%" /> 
 
 
 
@@ -109,7 +109,7 @@ void loop() {
 > * Issue: CO concentration did not rise significantly due to environmental limitations
 >    * Attempts: Used 1-5 candles and small charcoal pieces, but levels remained low.
 >    * Solution: Adjusted threshold settings to lower levels.
->        * <img src="https://github.com/user-attachments/assets/ab9dee1c-4524-4301-b318-69248710e9f6" width="50%" />
+>        * <img src="https://github.com/user-attachments/assets/de122de4-284f-4aa0-be5b-d4271abc755c" alt="image" width="50%" />
 
 
 * Code for MQ-7 Gas Sensor, Discord Notification Transmission, and Buzzer Alert 
