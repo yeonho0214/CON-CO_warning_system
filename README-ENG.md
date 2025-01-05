@@ -16,7 +16,8 @@ CON-CO_warning_system
 > * 50 ppm - Minimal impact, acceptable workplace exposure limit.
 
 ### 3. CO Poisoning Accidents During Camping
-> <img src="https://github.com/user-attachments/assets/b12e9047-c89a-4298-837d-5acabe06681d" width="80%" />
+> <img src="https://github.com/user-attachments/assets/ed125fda-fdf3-4082-84de-b3e20c6ed598" width="80%">
+
 
 > * Trend: CO poisoning incidents are increasing each year
 
@@ -74,10 +75,13 @@ void loop() {
 ***
 ### 2. MQ-7 Gas Sensor
 #### Outline
-> <img src="https://github.com/user-attachments/assets/bfb6f645-0cb4-4575-8f2f-348e193f5dd4" width="40%" />
+> <img src="https://github.com/user-attachments/assets/553a0325-e841-49f8-8ad4-5c29209ea228" width="40%" />
 * MQ-7 is specialized for carbon monoxide (CO) detection with high sensitivity and a measurement range of 20-2000 ppm. It operates by periodically changing heater voltage, ideal for boiler rooms and vehicle exhaust detection.
 * Operating Mechanism:
-  * <img src="https://github.com/user-attachments/assets/fb709418-5ef7-4d99-9015-0b68cc8758cf" width="40%" />
+> 1. Step 1: Preparing to Detect Gas
+> 2. Step 2: Gas Contact and Chemical Reaction
+> 3. Step 3: Generating Electrical Signals
+> 4. Step 4: Signal Processing and Output
 
 #### <December 4th (Wed) Attempt: Connection and Measurement with JETBOT>
 > <img src="https://github.com/user-attachments/assets/d91a8dbe-538e-4ac1-be59-bfde55e4357c" alt="Image 1" style="width: 30%;"/>
@@ -94,7 +98,8 @@ void loop() {
 
 * Buzzer Notifications: Integrate an active piezo buzzer for audible alarms at specific CO levels
     * Different frequencies, durations, and pauses correspond to CO levels.
-    * <img src="https://github.com/user-attachments/assets/4500ca61-1a3a-4d56-9176-fa78024b690e" alt="image" width="50%" /> 
+    * <img src="https://github.com/user-attachments/assets/59ccf273-3015-4100-890d-a6df875029a0" alt="image" width="50%" />
+
 
 
 
@@ -109,7 +114,8 @@ void loop() {
 > * Issue: CO concentration did not rise significantly due to environmental limitations
 >    * Attempts: Used 1-5 candles and small charcoal pieces, but levels remained low.
 >    * Solution: Adjusted threshold settings to lower levels.
->        * <img src="https://github.com/user-attachments/assets/de122de4-284f-4aa0-be5b-d4271abc755c" alt="image" width="50%" />
+>        * <img src="https://github.com/user-attachments/assets/89740b4f-3c63-4aaa-a26c-94863c741286" alt="image" width="50%" />
+
 
 
 * Code for MQ-7 Gas Sensor, Discord Notification Transmission, and Buzzer Alert 
@@ -347,7 +353,8 @@ if __name__ == "__main__":
     * Linear Regression: Predict threshold arrival time based on concentration trends.
     * Gradio-Based Chatbot: Users ask questions, and the system responds with ventilation advice.
 * Principle (Visualization):
-> <img src="https://github.com/user-attachments/assets/4ac5c5f7-ab74-40dc-a204-7cbe63d1e8a7" width="80%" /> 
+> <img src="https://github.com/user-attachments/assets/d0c7ea0c-f3dc-4901-9261-37b67fbf3e57" width="80%" />
+>
 #### <CO Monitoring & Prediction Chatbot Examples>
 > (Example 1)
 > <img src="https://github.com/user-attachments/assets/748b8012-20eb-4c25-83a5-3323375beb29" width="80%" />
